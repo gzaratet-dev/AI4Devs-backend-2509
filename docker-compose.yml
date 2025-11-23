@@ -4,9 +4,30 @@ services:
   db:
     image: postgres
     restart: always
+    container_name: lti-postgres
     environment:
       POSTGRES_PASSWORD: ${DB_PASSWORD}
       POSTGRES_USER: ${DB_USER}
       POSTGRES_DB: ${DB_NAME}
     ports:
       - ${DB_PORT}:5432
+    networks:
+      - lti-network
+
+  pgadmin:
+    image: dpage/pgadmin4
+    restart: always
+    container_name: lti-pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:-admin@lti.com}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:-admin123}
+    ports:
+      - "5050:80"
+    networks:
+      - lti-network
+    depends_on:
+      - db
+
+networks:
+  lti-network:
+    driver: bridge
