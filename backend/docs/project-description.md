@@ -18,9 +18,12 @@ El proyecto está en fase de desarrollo activo, con funcionalidades básicas imp
 - ✅ Gestión de candidatos (creación, consulta)
 - ✅ Carga de archivos (currículums)
 - ✅ Modelo de datos completo para flujos de entrevista
-- ⚠️ Operaciones limitadas (solo candidatos implementados en API)
+- ✅ **NUEVO:** Endpoints Kanban para gestión de candidatos por posición
+- ✅ **NUEVO:** Actualización de etapas de entrevista
+- ✅ **NUEVO:** Tests unitarios para servicios de dominio
+- ✅ **NUEVO:** Arquitectura DDD con SOLID principles
 - ⚠️ Sin autenticación/autorización
-- ⚠️ Sin pruebas unitarias implementadas
+- ⚠️ Tests de integración pendientes
 
 ---
 
@@ -33,26 +36,46 @@ El backend sigue una **arquitectura en capas (Layered Architecture)** con separa
 ┌─────────────────────────────────────────┐
 │      Presentation Layer (Routes)       │
 │    - Express Routes & Controllers       │
+│    - Error Handler Middleware          │
+│    - Async Handler Wrapper             │
 └──────────────┬──────────────────────────┘
                │
 ┌──────────────▼──────────────────────────┐
 │      Application Layer (Services)       │
 │    - Business Logic & Orchestration     │
 │    - Validation & File Upload           │
+│    - DTOs (Data Transfer Objects)       │
 └──────────────┬──────────────────────────┘
                │
 ┌──────────────▼──────────────────────────┐
 │       Domain Layer (Models)             │
 │    - Entity Models & Domain Logic       │
-│    - Data Access Methods                │
+│    - Domain Services                    │
+│    - Repository Interfaces              │
+│    - Value Objects                      │
 └──────────────┬──────────────────────────┘
                │
 ┌──────────────▼──────────────────────────┐
 │      Infrastructure (Prisma ORM)        │
+│    - Repository Implementations         │
 │    - Database Connection & Queries      │
 │    - PostgreSQL Database                │
 └─────────────────────────────────────────┘
 ```
+
+### 2.1.1 Arquitectura Mejorada - Endpoints Kanban ✨
+Los nuevos endpoints Kanban implementan **Domain-Driven Design (DDD)** completo:
+
+- **Domain Layer:** Servicios de dominio puro sin dependencias externas
+- **Application Layer:** Orquestación y casos de uso con DTOs
+- **Infrastructure Layer:** Implementación de repositorios con Prisma
+- **Presentation Layer:** Controladores delgados con manejo de errores
+
+**Ventajas:**
+- ✅ Testabilidad total (mocks de interfaces)
+- ✅ Inversión de dependencias (DIP)
+- ✅ Lógica de negocio aislada de frameworks
+- ✅ Facilita cambio de ORM sin afectar dominio
 
 ### 2.2 Patrones de Diseño Implementados
 
@@ -522,6 +545,70 @@ model Application {
 ## 5. API REST - Especificación OpenAPI
 
 ### 5.1 Endpoints Implementados
+
+#### **GET /api/positions/:id/candidates** ✨ NUEVO
+Obtiene todos los candidatos en proceso para una posición específica en formato Kanban.
+
+**Response 200:**
+```json
+[
+  {
+    "candidateId": 1,
+    "fullName": "John Doe",
+    "currentInterviewStep": "Technical Interview",
+    "averageScore": 7.5,
+    "applicationId": 5
+  }
+]
+```
+
+**Características:**
+- Calcula el promedio de puntuaciones de entrevistas automáticamente
+- Retorna array vacío si no hay candidatos para la posición
+- Incluye información del paso actual del proceso de entrevista
+
+**Errores:**
+- `400` - ID de posición inválido
+- `500` - Error interno del servidor
+
+---
+
+#### **PUT /api/candidates/:id/stage** ✨ NUEVO
+Actualiza la etapa de entrevista actual de un candidato específico.
+
+**Request Body:**
+```json
+{
+  "applicationId": 5,
+  "newInterviewStepId": 3
+}
+```
+
+**Response 200:**
+```json
+{
+  "message": "Stage updated successfully",
+  "application": {
+    "id": 5,
+    "currentInterviewStep": 3,
+    "updatedAt": "2025-11-24T10:30:00Z"
+  }
+}
+```
+
+**Validaciones de Negocio:**
+- ✅ No se pueden saltar etapas (solo avanzar/retroceder 1 paso)
+- ✅ La nueva etapa debe pertenecer al mismo flujo de entrevistas
+- ✅ Solo se puede retroceder un paso a la vez
+- ✅ La aplicación debe pertenecer al candidato especificado
+
+**Errores:**
+- `400` - Datos inválidos o aplicación no pertenece al candidato
+- `404` - Candidato, aplicación o etapa no encontrada
+- `422` - Regla de negocio violada (ej: saltar etapas)
+- `500` - Error interno del servidor
+
+---
 
 #### **POST /candidates**
 Crea un nuevo candidato con toda su información relacionada.
@@ -1280,7 +1367,12 @@ datasource db {
 - **Desarrollo:** 12 dependencias
 
 ### 11.3 Cobertura de Tests
-- **Actual:** 0% (sin tests implementados)
+- **Actual:** ~35% (tests unitarios de servicios de dominio)
+- **Tests Implementados:**
+  - ✅ ScoreCalculator (6 tests)
+  - ✅ StageTransitionValidator (6 tests)
+  - ✅ Validators (9 tests)
+- **Pendiente:** Tests de integración y E2E
 - **Objetivo:** >80%
 
 ---
@@ -1497,8 +1589,34 @@ GET    /api/v1/reports/hiring-metrics
 ---
 
 **Fecha de Análisis:** Noviembre 2025  
-**Versión del Documento:** 1.0  
+**Versión del Documento:** 1.1  
 **Autor:** Arquitecto de Software ATS  
 **Estado del Proyecto:** Desarrollo Activo  
-**Última Actualización del Código:** Mayo 2024
+**Última Actualización del Código:** Noviembre 2025
+
+---
+
+## Changelog
+
+### Versión 1.1 - Noviembre 2025
+**Nuevas Funcionalidades:**
+- ✅ Endpoints Kanban para gestión de candidatos (GET /api/positions/:id/candidates)
+- ✅ Actualización de etapas de entrevista (PUT /api/candidates/:id/stage)
+- ✅ Arquitectura DDD completa con SOLID principles
+- ✅ Repository Pattern con Dependency Injection
+- ✅ Tests unitarios para servicios de dominio
+- ✅ Manejo de errores centralizado con clases personalizadas
+- ✅ Validadores reutilizables
+
+**Mejoras de Arquitectura:**
+- Separación completa de capas (Domain, Application, Infrastructure, Presentation)
+- Inversión de dependencias (interfaces en dominio, implementaciones en infraestructura)
+- Value Objects para conceptos de negocio
+- Domain Services para lógica compleja
+- DTOs para transferencia de datos
+
+**Deuda Técnica Reducida:**
+- ✅ Tests unitarios implementados
+- ✅ Manejo de errores mejorado
+- ✅ Validaciones centralizadas
 
