@@ -237,7 +237,7 @@ async function main() {
       interviewFlowId: interviewFlow1.id,
       interviewTypeId: interviewType3.id,
       name: 'Manager Interview',
-      orderIndex: 2,
+      orderIndex: 3,
     },
   });
 
