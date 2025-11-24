@@ -1,7 +1,5 @@
 # Ignore in all directories
 **/.DS_Store
-**/.env
-#**/.env.example
 **/node_modules
 **/prompts_master.md
 
@@ -25,6 +23,14 @@ yarn-error.log*
 .idea
 .vscode
 
-# .env
-# Environment variables
+# Environment variables - NEVER commit .env files with sensitive data
 .env
+.env.local
+.env.*.local
+**/.env
+**/.env.local
+**/.env.*.local
+
+# Exception: .env.example is a template file and SHOULD be committed
+# Make sure it doesn't contain real credentials
+!.env.example
